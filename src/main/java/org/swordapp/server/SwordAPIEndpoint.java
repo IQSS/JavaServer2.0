@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.abdera.parser.ParseException;
 
 public class SwordAPIEndpoint
 {
@@ -347,12 +348,18 @@ public class SwordAPIEndpoint
 	}
 
 	protected void addDepositPropertiesFromEntry(Deposit deposit, HttpServletRequest req)
-			throws IOException
+			throws IOException, SwordError
 	{
 		InputStream entryPart = req.getInputStream();
 		Abdera abdera = new Abdera();
 		Parser parser = abdera.getParser();
-		Document<Entry> entryDoc = parser.parse(entryPart);
+		Document<Entry> entryDoc = null;
+		try {
+			entryDoc = parser.parse(entryPart);
+		}
+		catch (ParseException ex) {
+			throw new SwordError("Unable to parse SWORD entry: " + ex);
+		}
 		Entry entry = entryDoc.getRoot();
 		deposit.setEntry(entry);
 	}
